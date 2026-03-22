@@ -1284,7 +1284,21 @@ async function handleShareLocation() {
   setLocationRequesting(true);
   try {
     const position = await requestBrowserLocation();
-    await saveUserLocation(position.coords);
+    const timestamp = Date.now();
+    setCurrentUser({
+      ...(state.currentUser || { ...GUEST_USER }),
+      last_latitude: Number(position.coords.latitude),
+      last_longitude: Number(position.coords.longitude),
+      location_accuracy: Number.isFinite(position.coords.accuracy) ? Number(position.coords.accuracy) : null,
+      location_updated_at: timestamp,
+    });
+    updateUserProfile();
+    updateStats();
+    try {
+      await saveUserLocation(position.coords);
+    } catch (error) {
+      console.warn("Failed to persist user location on server", error);
+    }
     state.location.error = "";
     await loadLots();
     renderReportForm();
@@ -1403,10 +1417,19 @@ function updateLiveIndicator() {
 
 function getLotsEndpoint(path) {
   const base = path || "/api/lots";
+  const params = new URLSearchParams();
   const username = state.currentUser?.username;
-  if (!username) return base;
-  const params = new URLSearchParams({ username });
-  return `${base}?${params.toString()}`;
+  if (username) {
+    params.set("username", username);
+  }
+  const latitude = Number(state.currentUser?.last_latitude);
+  const longitude = Number(state.currentUser?.last_longitude);
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    params.set("latitude", String(latitude));
+    params.set("longitude", String(longitude));
+  }
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 async function loadLots() {

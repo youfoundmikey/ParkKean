@@ -1544,7 +1544,13 @@ app.get("/api/lots", async (req, res, next) => {
   try {
     const lotsFromDb = await getLotsWithReports();
     const username = req.query?.username?.toString().trim().toLowerCase() || null;
-    const userLocation = username ? await getUserLocationCoordinates(username) : null;
+    const queryLatitude = Number(req.query?.latitude);
+    const queryLongitude = Number(req.query?.longitude);
+    const queryLocation =
+      Number.isFinite(queryLatitude) && Number.isFinite(queryLongitude)
+        ? { latitude: queryLatitude, longitude: queryLongitude }
+        : null;
+    const userLocation = queryLocation || (username ? await getUserLocationCoordinates(username) : null);
     let buildingContext = null;
     let walkMinutesMap = null;
     if (userLocation) {
@@ -1754,7 +1760,13 @@ app.post("/api/lots/refresh", async (req, res, next) => {
   try {
     const lotsFromDb = await getLotsWithReports();
     const username = req.query?.username?.toString().trim().toLowerCase() || null;
-    const userLocation = username ? await getUserLocationCoordinates(username) : null;
+    const queryLatitude = Number(req.query?.latitude);
+    const queryLongitude = Number(req.query?.longitude);
+    const queryLocation =
+      Number.isFinite(queryLatitude) && Number.isFinite(queryLongitude)
+        ? { latitude: queryLatitude, longitude: queryLongitude }
+        : null;
+    const userLocation = queryLocation || (username ? await getUserLocationCoordinates(username) : null);
     let buildingContext = null;
     let walkMinutesMap = null;
     if (userLocation) {
