@@ -82,19 +82,17 @@ Notes:
 - Local dev via `npm start` still runs the original SQLite server in `server.js`.
 - Netlify uses the Supabase-backed function runtime, preserving the same API paths used by `public/app.js`.
 
-## Vercel + Supabase Deployment
+## Vercel Deployment (No Supabase)
 
-This repo now includes a Vercel API runtime at `api/[...path].js` that preserves the same `/api/*` routes.
+The Vercel API runtime at `api/[...path].js` now uses SQLite and does not require any external database account.
 
-1. In Supabase SQL Editor, run:
-   - `supabase/migrations/202603070001_init.sql`
-   - (optional) `supabase/seed.sql`
-2. In Vercel, import this repo.
-3. Add environment variable in Vercel:
-   - `SUPABASE_DB_URL` (your pooled or direct Postgres connection string)
-   - `PK_FORCE_BOOTSTRAP=true` (optional, first deploy only)
-4. Deploy. `vercel.json` keeps API/static files and rewrites unmatched SPA routes to `index.html`.
+1. In Vercel, import this repo.
+2. Deploy. `vercel.json` keeps API/static files and rewrites unmatched SPA routes to `index.html`.
+3. Optional environment variables:
+   - `PK_DB_DIR` (defaults to `/tmp` on Vercel)
+   - `PK_FORCE_BOOTSTRAP=true` (optional, one-time if you want to force a full re-bootstrap)
 
 Notes:
 - The frontend still serves from `public/`.
 - `api/[...path].js` is the runtime used by Vercel for `/api/*`.
+- Guest mode works by default, so users can interact with the app without creating an account.

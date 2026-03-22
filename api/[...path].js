@@ -1,6 +1,19 @@
 import express from "express";
-import { Pool } from "pg";
+import sqlite3 from "sqlite3";
+import path from "path";
+import fs from "fs";
 import crypto from "crypto";
+import { fileURLToPath } from "url";
+
+sqlite3.verbose();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DB_DIR = process.env.PK_DB_DIR || "/tmp";
+const DB_PATH = path.join(DB_DIR, "parkkean.db");
+
+fs.mkdirSync(DB_DIR, { recursive: true });
+const db = new sqlite3.Database(DB_PATH);
 
 const app = express();
 app.use(express.json());
@@ -10,10 +23,6 @@ app.use((req, _res, next) => {
     req.url = `/api${req.url.startsWith("/") ? req.url : `/${req.url}`}`;
   }
   next();
-});
-const pool = new Pool({
-  connectionString: process.env.SUPABASE_DB_URL,
-  ssl: { rejectUnauthorized: false },
 });
 const VALID_STATUSES = new Set(["OPEN", "LIMITED", "FULL"]);
 const HISTORY_DAY_MULTIPLIERS = [0.45, 0.85, 0.95, 1, 1, 0.92, 0.5];
@@ -371,74 +380,31 @@ const BUILDING_WALK_MINUTES = {
   },
 };
 
-const TABLES_WITH_ID = new Set(["lot_history", "buildings", "notifications", "lots", "users", "reports"]);
-
-function normalizeSql(sql) {
-  return sql
-    .replace(/INTEGER PRIMARY KEY AUTOINCREMENT/gi, "BIGSERIAL PRIMARY KEY")
-    .replace(/strftime\('%s','now'\) \* 1000/gi, "(extract(epoch from now()) * 1000)::bigint");
+function run(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(error) {
+      if (error) return reject(error);
+      resolve({ id: this.lastID, changes: this.changes });
+    });
+  });
 }
 
-function bindSql(sql) {
-  let index = 0;
-  return sql.replace(/\?/g, () => `$${++index}`);
+function get(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (error, row) => {
+      if (error) return reject(error);
+      resolve(row);
+    });
+  });
 }
 
-function tableFromInsert(sql) {
-  const match = sql.match(/^\s*insert\s+into\s+([a-z_][a-z0-9_]*)/i);
-  return match ? match[1].toLowerCase() : null;
-}
-
-function maybeAddReturning(sql) {
-  if (!/^\s*insert\s+into/i.test(sql) || /\breturning\b/i.test(sql)) {
-    return sql;
-  }
-  const table = tableFromInsert(sql);
-  if (!table || !TABLES_WITH_ID.has(table)) {
-    return sql;
-  }
-  return `${sql} RETURNING id`;
-}
-
-async function run(sql, params = []) {
-  const withCompat = normalizeSql(sql);
-  const withReturning = maybeAddReturning(withCompat);
-  const query = bindSql(withReturning);
-  const result = await pool.query(query, params);
-  return { id: result.rows?.[0]?.id ?? null, changes: result.rowCount ?? 0 };
-}
-
-async function queryPragmaTableInfo(sql, params = []) {
-  const match = sql.match(/^\s*PRAGMA\s+table_info\(([^)]+)\)\s*$/i);
-  if (!match) return null;
-  const rawName = match[1].trim();
-  const tableName = rawName.replace(/^['"]|['"]$/g, "");
-  const result = await pool.query(
-    `SELECT column_name AS name
-     FROM information_schema.columns
-     WHERE table_schema = 'public' AND table_name = $1
-     ORDER BY ordinal_position`,
-    [tableName]
-  );
-  return result.rows;
-}
-
-async function get(sql, params = []) {
-  const pragmaRows = await queryPragmaTableInfo(sql, params);
-  if (pragmaRows) return pragmaRows[0] ?? null;
-  const withCompat = normalizeSql(sql);
-  const query = bindSql(withCompat);
-  const result = await pool.query(query, params);
-  return result.rows[0] ?? null;
-}
-
-async function all(sql, params = []) {
-  const pragmaRows = await queryPragmaTableInfo(sql, params);
-  if (pragmaRows) return pragmaRows;
-  const withCompat = normalizeSql(sql);
-  const query = bindSql(withCompat);
-  const result = await pool.query(query, params);
-  return result.rows;
+function all(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (error, rows) => {
+      if (error) return reject(error);
+      resolve(rows);
+    });
+  });
 }
 
 function normalizeNumber(value) {
@@ -1628,9 +1594,6 @@ async function getLotsWithReports(targetId = null) {
 
 let initPromise = null;
 async function ensureInitialized() {
-  if (!process.env.SUPABASE_DB_URL) {
-    throw new Error("SUPABASE_DB_URL is required for API runtime");
-  }
   if (!initPromise) {
     initPromise = initDatabase().catch((error) => {
       initPromise = null;
