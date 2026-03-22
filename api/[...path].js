@@ -2100,8 +2100,14 @@ export default async function handler(req, res) {
     return app(req, res);
   } catch (error) {
     console.error(error);
+    const message = error?.message ? String(error.message) : "Internal server error";
+    const code = error?.code ? String(error.code) : null;
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({
+        error: "Internal server error",
+        message,
+        code,
+      });
     }
   }
 }
