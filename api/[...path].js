@@ -47,6 +47,11 @@ const ADMIN_ACCOUNT = Object.freeze({
   email: "admin@parkkean.edu",
   password: "parkkean-admin",
 });
+const GUEST_ACCOUNT = Object.freeze({
+  username: "Guest",
+  email: "guest@parkkean.local",
+  password: "guest-access",
+});
 const PASSWORD_HASH_CONFIG = Object.freeze({
   iterations: 120000,
   keyLength: 64,
@@ -465,6 +470,48 @@ function normalizeUser(row) {
 
 function normalizeEmail(value) {
   return value ? String(value).trim().toLowerCase() : "";
+}
+
+async function ensureGuestAccount() {
+  const guestEmail = normalizeEmail(GUEST_ACCOUNT.email);
+  let existing = await get(`SELECT id FROM users WHERE email_lower = ?`, [guestEmail]);
+  if (!existing) {
+    existing = await get(`SELECT id FROM users WHERE lower(username) = ?`, [
+      GUEST_ACCOUNT.username.toLowerCase(),
+    ]);
+  }
+  if (!existing) {
+    const credentials = hashPassword(GUEST_ACCOUNT.password);
+    await run(
+      `INSERT INTO users (username, email, email_lower, password_hash, password_salt, points, reports, created_at, is_admin)
+       VALUES (?, ?, ?, ?, ?, 0, 0, ?, 0)`,
+      [
+        GUEST_ACCOUNT.username,
+        GUEST_ACCOUNT.email,
+        guestEmail,
+        credentials.hash,
+        credentials.salt,
+        Date.now(),
+      ]
+    );
+    return;
+  }
+  await run(
+    `UPDATE users
+       SET username = ?,
+           email = ?,
+           email_lower = ?,
+           is_admin = 0
+     WHERE id = ?`,
+    [GUEST_ACCOUNT.username, GUEST_ACCOUNT.email, guestEmail, existing.id]
+  );
+}
+
+async function getGuestUser() {
+  await ensureGuestAccount();
+  return get(`SELECT ${USER_COLUMN_SELECTION} FROM users WHERE lower(username) = ?`, [
+    GUEST_ACCOUNT.username.toLowerCase(),
+  ]);
 }
 
 function isValidEmail(value) {
@@ -1274,6 +1321,7 @@ async function initDatabase() {
   }
   await ensureNotificationsTable();
   await ensureAdminAccount();
+  await ensureGuestAccount();
   // Always refresh building-lot walk times to reflect latest matrix
   await ensureBuildings();
   await ensureBuildingLotWalks();
@@ -1655,10 +1703,7 @@ app.get("/api/lots/:id/reports", async (req, res, next) => {
 app.get("/api/notifications", async (req, res, next) => {
   try {
     await ensureInitialized();
-    const username = req.query?.username?.toString().trim();
-    if (!username) {
-      return res.status(400).json({ error: "username is required" });
-    }
+    const username = req.query?.username?.toString().trim() || GUEST_ACCOUNT.username;
     const userRecord = await get(`SELECT id FROM users WHERE lower(username) = ?`, [
       username.toLowerCase(),
     ]);
@@ -1959,22 +2004,22 @@ app.post("/api/users/:username/location", async (req, res, next) => {
 app.post("/api/eco-commute", async (req, res, next) => {
   try {
     await ensureInitialized();
-    const username = req.body?.username?.trim();
+    const username = req.body?.username?.trim() || GUEST_ACCOUNT.username;
     const rawMode = req.body?.mode;
     const mode = typeof rawMode === "string" ? rawMode.trim().toLowerCase() : "";
-    if (!username) {
-      return res.status(400).json({ error: "Username is required." });
-    }
     if (!mode || !Object.prototype.hasOwnProperty.call(ECO_COMMUTE_POINTS, mode)) {
       return res
         .status(400)
         .json({ error: "Choose a valid commute mode: walked, biked, carpooled, or drove." });
     }
 
-    const user = await get(
+    let user = await get(
       `SELECT ${USER_COLUMN_SELECTION} FROM users WHERE lower(username) = ?`,
       [username.toLowerCase()]
     );
+    if (!user && username.toLowerCase() === GUEST_ACCOUNT.username.toLowerCase()) {
+      user = await getGuestUser();
+    }
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
@@ -2031,8 +2076,8 @@ app.post("/api/reports", async (req, res, next) => {
   try {
     await ensureInitialized();
     const { username, lotId, status, note } = req.body ?? {};
-    if (!username || !lotId || !status) {
-      return res.status(400).json({ error: "username, lotId, and status are required" });
+    if (!lotId || !status) {
+      return res.status(400).json({ error: "lotId and status are required" });
     }
     if (!VALID_STATUSES.has(status)) {
       return res.status(400).json({ error: "Invalid status value" });
@@ -2043,12 +2088,16 @@ app.post("/api/reports", async (req, res, next) => {
       return res.status(404).json({ error: "Lot not found" });
     }
 
-    const trimmedUsername = username.trim();
+    const trimmedUsername =
+      typeof username === "string" && username.trim() ? username.trim() : GUEST_ACCOUNT.username;
     const lowerUsername = trimmedUsername.toLowerCase();
-    const user = await get(
+    let user = await get(
       `SELECT ${USER_COLUMN_SELECTION} FROM users WHERE lower(username) = ?`,
       [lowerUsername]
     );
+    if (!user && lowerUsername === GUEST_ACCOUNT.username.toLowerCase()) {
+      user = await getGuestUser();
+    }
     if (!user) {
       return res.status(404).json({ error: "User account not found" });
     }

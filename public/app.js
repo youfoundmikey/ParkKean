@@ -70,6 +70,18 @@ const state = {
     message: "",
   },
 };
+const GUEST_USER = Object.freeze({
+  username: "Guest",
+  email: "guest@parkkean.local",
+  is_admin: false,
+  points: 0,
+  reports: 0,
+  last_latitude: null,
+  last_longitude: null,
+  location_accuracy: null,
+  location_updated_at: null,
+  last_eco_log_date: null,
+});
 
 function clampValue(value, min, max) {
   if (!Number.isFinite(value)) return min;
@@ -301,6 +313,9 @@ init();
 async function init() {
   initializeTheme();
   restoreStoredUser();
+  if (!state.currentUser?.username) {
+    setCurrentUser({ ...GUEST_USER });
+  }
   loadEcoInputsForUser();
   updateUserProfile();
   updateStats();
@@ -320,9 +335,6 @@ async function init() {
     startNotificationPolling();
   } else {
     stopNotificationPolling();
-  }
-  if (!state.currentUser) {
-    setTimeout(() => openAuthModal("register"), 0);
   }
 }
 
@@ -352,9 +364,6 @@ function attachEventListeners() {
       const page = button.dataset.nav;
       setActivePage(page);
       closeMobileNav();
-      if (!state.currentUser && page !== "lots") {
-        openAuthModal("register");
-      }
     });
   });
 
@@ -691,8 +700,7 @@ async function handleReportSubmit(event) {
   event.preventDefault();
   if (state.report.isSubmitting) return;
   if (!state.currentUser?.username) {
-    showReportFeedback("Log in to submit parking updates.", true);
-    return;
+    setCurrentUser({ ...GUEST_USER });
   }
   const lotIdValue = Number(dom.reportLotSelect?.value);
   if (!Number.isFinite(lotIdValue)) {
@@ -1119,7 +1127,7 @@ function applyAuthenticatedUser(user) {
 }
 
 function handleLogout(modal) {
-  setCurrentUser(null);
+  setCurrentUser({ ...GUEST_USER });
   loadEcoInputsForUser();
   state.location.isRequesting = false;
   state.location.error = "";
@@ -1137,7 +1145,7 @@ function handleLogout(modal) {
   renderReportForm();
   renderAdminDashboard();
   renderNotifications();
-  showReportFeedback("Log in to submit parking status updates.", true);
+  showReportFeedback("You are now using guest access.", false);
   closeModal(modal);
 }
 
@@ -1148,7 +1156,7 @@ function updateUserProfile() {
   const initialsSource = state.currentUser?.username ?? "";
   dom.usernameInitials.textContent = initialsSource ? initialsFor(initialsSource) : "–";
   if (dom.authOpen) {
-    dom.authOpen.textContent = state.currentUser ? "Account" : "Log in";
+    dom.authOpen.textContent = state.currentUser ? "Account" : "Guest";
   }
   updateLocationControls();
   updateLocationStatus();
@@ -1191,25 +1199,17 @@ function updateAdminAccess() {
 }
 
 function updateAuthAccess() {
-  const hasUser = Boolean(state.currentUser);
+  const hasUser = true;
   dom.navButtons.forEach((button) => {
     const nav = button.dataset.nav;
     const restrict = nav && nav !== "lots";
     if (restrict) {
       button.disabled = !hasUser;
-      if (!hasUser) {
-        button.classList.remove("is-active");
-        button.title = "Log in to use this feature";
-      } else {
-        button.title = "";
-      }
+      button.title = "";
     }
   });
-  if (!hasUser && state.activePage !== "lots") {
-    setActivePage("lots");
-  }
   if (dom.authBanner) {
-    dom.authBanner.classList.toggle("is-hidden", hasUser);
+    dom.authBanner.classList.add("is-hidden");
   }
 }
 
@@ -1235,8 +1235,6 @@ function updateLocationControls() {
   dom.locateButton.disabled = disable;
   if (!hasGeolocationSupport()) {
     dom.locateButton.title = "Location isn't supported on this device.";
-  } else if (!hasUser) {
-    dom.locateButton.title = "Log in to share your location.";
   } else {
     dom.locateButton.removeAttribute("title");
   }
@@ -1247,10 +1245,6 @@ function updateLocationStatus() {
   dom.locationStatus.classList.remove("is-error");
   if (!hasGeolocationSupport()) {
     dom.locationStatus.textContent = "Location not supported on this device.";
-    return;
-  }
-  if (!state.currentUser?.username) {
-    dom.locationStatus.textContent = "Log in to share your location.";
     return;
   }
   if (state.location.isRequesting) {
@@ -1278,9 +1272,7 @@ function formatLocationSummary() {
 
 async function handleShareLocation() {
   if (!state.currentUser?.username) {
-    state.location.error = "Log in to share your location.";
-    updateLocationStatus();
-    return;
+    setCurrentUser({ ...GUEST_USER });
   }
   if (!hasGeolocationSupport()) {
     state.location.error = "Location isn't supported on this device.";
@@ -1542,19 +1534,13 @@ function updateEcoCommuteAccess() {
   const isBusy = Boolean(state.ecoCommute?.isSubmitting);
   dom.ecoCommuteSelect.disabled = !hasUser || isBusy;
   dom.ecoCommuteButton.disabled = !hasUser || isBusy;
-  if (!hasUser) {
-    setEcoCommuteFeedback("Log in to track today's eco-commute.", "error");
-  } else if (!state.ecoCommute.message) {
+  if (!state.ecoCommute.message) {
     setEcoCommuteFeedback("", "muted");
   }
 }
 
 async function handleEcoCommuteSubmit(event) {
   event.preventDefault();
-  if (!state.currentUser?.username) {
-    setEcoCommuteFeedback("Log in to track today's eco-commute.", "error");
-    return;
-  }
   const mode = dom.ecoCommuteSelect?.value;
   if (!mode) {
     setEcoCommuteFeedback("Pick how you arrived before logging.", "error");
@@ -2184,7 +2170,7 @@ function renderNotifications() {
 
   if (!isLoggedIn) {
     dom.notificationsLoading?.classList.add("is-hidden");
-    dom.notificationsEmpty.textContent = "Log in to start receiving notifications.";
+    dom.notificationsEmpty.textContent = "No notifications yet.";
     dom.notificationsEmpty.classList.remove("is-hidden");
     return;
   }
@@ -2358,7 +2344,7 @@ function renderEcoSection() {
   if (dom.ecoHint) {
     dom.ecoHint.textContent = snapshot.hasUser
       ? `Eco points follow your account. Next badge: ${snapshot.nextBadge?.name ?? snapshot.currentBadge.name}`
-      : "Log in to personalize these numbers.";
+      : "Use guest mode or create an account to personalize these numbers.";
   }
   if (dom.ecoNext) {
     dom.ecoNext.textContent = snapshot.nextBadge
@@ -2491,9 +2477,6 @@ function setFilter(filter) {
 }
 
 function setActivePage(page) {
-  if (!state.currentUser && page !== "lots") {
-    page = "lots";
-  }
   if (page === "admin" && !isAdminUser()) {
     page = "lots";
   }
