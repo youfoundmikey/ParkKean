@@ -1,0 +1,21 @@
+{
+  "name": "parkkean",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Campus parking assistant built with Node.js, Express, SQLite, and vanilla HTML/CSS/JS.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.20.0",
+    "serverless-http": "^3.2.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ParkKean — Campus Parking Assistant</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar">
+        <div class="sidebar__brand">
+          <div class="sidebar__brand-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+              <defs>
+                <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#34d399" />
+                  <stop offset="100%" stop-color="#2563eb" />
+                </linearGradient>
+              </defs>
+              <rect width="32" height="32" rx="12" fill="url(#badgeGradient)"></rect>
+              <path
+                d="M9 17c0-3.314 2.686-6 6-6h2c3.314 0 6 2.686 6 6v2c0 1.105-.895 2-2 2h-1c-.552 0-1-.448-1-1v-1H13v1c0 .552-.448 1-1 1h-1c-1.105 0-2-.895-2-2v-2Zm4-1h6a1 1 0 0 0 0-2h-6a1 1 0 1 0 0 2Z"
+                fill="#0f172a"
+                fill-opacity="0.92"
+              ></path>
+            </svg>
+          </div>
+          <div>
+            <p class="sidebar__brand-name">ParkKean</p>
+            <p class="sidebar__brand-tagline">Kean Campus Parking Assistant</p>
+          </div>
+        </div>
+
+        <nav class="sidebar__nav">
+          <p class="sidebar__section-label">Navigation</p>
+          <ul class="sidebar__nav-list">
+            <li>
+              <button class="sidebar__nav-button is-active" data-nav="lots">
+                <span class="sidebar__icon" aria-hidden="true">🚗</span>
+                <span>
+                  <span class="sidebar__nav-label">Parking Lots</span>
+                  <span class="sidebar__nav-description">Find available parking</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="sidebar__nav-button" data-nav="report">
+                <span class="sidebar__icon" aria-hidden="true">📝</span>
+                <span>
+                  <span class="sidebar__nav-label">Report Status</span>
+                  <span class="sidebar__nav-description">Share live lot updates</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="sidebar__nav-button" data-nav="notifications">
+                <span class="sidebar__icon" aria-hidden="true">🔔</span>
+                <span>
+                  <span class="sidebar__nav-label">Notifications</span>
+                  <span class="sidebar__nav-description">See campus updates</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="sidebar__nav-button" data-nav="leaderboard">
+                <span class="sidebar__icon" aria-hidden="true">🏆</span>
+                <span>
+                  <span class="sidebar__nav-label">Leaderboard</span>
+                  <span class="sidebar__nav-description">Community rankings</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="sidebar__nav-button" data-nav="admin">
+                <span class="sidebar__icon" aria-hidden="true">⚙️</span>
+                <span>
+                  <span class="sidebar__nav-label">Admin Dashboard</span>
+                  <span class="sidebar__nav-description">Manage lots &amp; events</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="sidebar__nav-button" data-nav="eco">
+                <span class="sidebar__icon" aria-hidden="true">🌱</span>
+                <span>
+                  <span class="sidebar__nav-label">Eco Commute</span>
+                  <span class="sidebar__nav-description">Turn greener trips into points</span>
+                </span>
+                <span class="sidebar__badge">New</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar__stats">
+          <p class="sidebar__section-label">Your Stats</p>
+          <div class="stats-card">
+            <div class="stats-card__row accent-blue">
+              <span class="stats-card__label">Points</span>
+              <span class="stats-card__value" data-stat-points>0</span>
+            </div>
+            <div class="stats-card__row accent-green">
+              <span class="stats-card__label">Eco Points</span>
+              <span class="stats-card__value" data-stat-eco>0</span>
+            </div>
+            <div class="stats-card__row accent-amber">
+              <span class="stats-card__label">Streak</span>
+              <span class="stats-card__value" data-stat-streak>0 days</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar__footer">
+          <button
+            class="sidebar__mode-button"
+            type="button"
+            aria-label="Switch to light mode"
+            aria-pressed="false"
+            data-theme-toggle
+          >
+            <span class="sidebar__mode-icon sidebar__mode-icon--moon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="sidebar__mode-icon sidebar__mode-icon--sun" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-10a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-6a1 1 0 0 1 1 1v1a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v1a1 1 0 0 1-2 0v-1a1 1 0 0 1 1-1ZM4.222 5.636a1 1 0 0 1 1.414-1.414l.708.707a1 1 0 1 1-1.414 1.415l-.708-.708ZM18.364 19.778a1 1 0 0 1-1.414 0l-.708-.707a1 1 0 0 1 1.414-1.415l.708.708ZM1 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H2a1 1 0 0 1-1-1Zm18-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1 0-2ZM5.636 18.364a1 1 0 0 1 1.414 0l.708.707a1 1 0 0 1-1.414 1.415l-.708-.708Zm12.728-12.728.708-.707a1 1 0 1 1 1.414 1.414l-.708.708a1 1 0 0 1-1.414-1.415Z"
+                ></path>
+              </svg>
+            </span>
+          </button>
+          <div class="sidebar__profile">
+            <div class="sidebar__avatar" data-username-initials>–</div>
+            <div>
+              <p class="sidebar__profile-name" data-username>Not signed in</p>
+              <p class="sidebar__profile-email" data-user-email>Log in to unlock features</p>
+            </div>
+          </div>
+          <button class="sidebar__auth-button" type="button" data-auth-open>
+            Log in
+          </button>
+        </div>
+      </aside>
+
+      <main class="app-content">
+        <header class="content-header">
+          <div class="content-header__leading">
+            <button
+              class="header-button header-button--mobile"
+              type="button"
+              aria-label="Toggle navigation"
+              aria-controls="app-sidebar"
+              aria-expanded="false"
+              data-nav-toggle
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M4 6a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5A1 1 0 0 1 4 6Zm0 5a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm1 4a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2H5Z"
+                ></path>
+              </svg>
+            </button>
+          <div class="content-header__copy">
+            <h1 class="content-header__title" data-page-title>Campus Parking</h1>
+            <p class="content-header__subtitle" data-page-subtitle>
+              Trend-based availability with optional walking estimates from your location
+            </p>
+          </div>
+        </div>
+          <div class="content-header__actions">
+            <div class="live-indicator" data-live-indicator>
+              <span class="live-indicator__dot" aria-hidden="true"></span>
+              <span class="live-indicator__text" data-live-indicator-text>Estimated availability</span>
+            </div>
+            <div class="location-indicator">
+              <button class="location-indicator__button" type="button" data-locate>
+                Share location
+              </button>
+              <p class="location-indicator__status" data-location-status aria-live="polite">
+                Location not shared
+              </p>
+            </div>
+            <button class="header-button" type="button" aria-label="Refresh occupancy data" data-refresh>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M5 2a1 1 0 0 1 1 1v2.126A8.964 8.964 0 0 1 12 3a9 9 0 1 1-8.708 11.294 1 1 0 1 1 1.932-.518A7 7 0 1 0 12 5a6.97 6.97 0 0 0-4.243 1.414H10a1 1 0 0 1 0 2H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="content-toolbar" data-toolbar>
+          <label class="search-field">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M11 4a7 7 0 1 1 4.9 11.9l3.7 3.7a1 1 0 0 1-1.4 1.4l-3.7-3.7A7 7 0 0 1 11 4Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"
+              ></path>
+            </svg>
+            <input type="search" placeholder="Search lots by name or code..." data-search />
+            <button type="button" class="search-field__filter" aria-label="Filter options">
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M3 5a1 1 0 0 1 1-1h16a1 1 0 0 1 .832 1.555l-5.01 7.516a1 1 0 0 0-.176.559v4.37a1 1 0 0 1-.553.894l-3 1.5A1 1 0 0 1 11 19.5v-4.37a1 1 0 0 0-.176-.559L5.813 5.555A1 1 0 0 1 6.644 4H4a1 1 0 0 1-1-1Z"
+                ></path>
+              </svg>
+            </button>
+          </label>
+
+          <div class="status-tabs" role="tablist" aria-label="Filter by status">
+            <button class="status-tabs__button is-active" role="tab" aria-selected="true" data-filter="ALL">
+              All
+              <span class="status-tabs__count" data-count-all>0</span>
+            </button>
+            <button class="status-tabs__button" role="tab" aria-selected="false" data-filter="OPEN">
+              Open
+              <span class="status-tabs__count" data-count-open>0</span>
+            </button>
+            <button class="status-tabs__button" role="tab" aria-selected="false" data-filter="LIMITED">
+              Limited
+              <span class="status-tabs__count" data-count-limited>0</span>
+            </button>
+            <button class="status-tabs__button" role="tab" aria-selected="false" data-filter="FULL">
+              Full
+              <span class="status-tabs__count" data-count-full>0</span>
+            </button>
+          </div>
+        </div>
+
+        <section class="content-main" data-page="lots">
+          <div class="auth-banner is-hidden" data-auth-banner>
+            <div>
+              <p class="auth-banner__title">Create a ParkKean account to unlock reports and notifications.</p>
+              <p class="auth-banner__description">
+                Stay informed on lot changes, submit live updates, and track your eco commute impact.
+              </p>
+            </div>
+            <button class="btn btn--primary" type="button" data-auth-open>Get started</button>
+          </div>
+
+          <section class="eco-card eco-commute-card" data-eco-commute-card>
+            <header class="eco-card__header eco-card__header--split">
+              <div>
+                <p class="eco-card__eyebrow">Eco-Commute</p>
+                <h3 class="eco-card__title">Log today's trip</h3>
+                <p class="eco-card__hint">One log per day. Points feed the same leaderboard total.</p>
+              </div>
+              <span class="eco-card__pill eco-card__pill--accent">+3 pts max</span>
+            </header>
+            <form class="eco-commute" data-eco-commute-form>
+              <label class="eco-commute__field">
+                <span class="eco-commute__label">How did you arrive?</span>
+                <select class="input select" data-eco-commute-select>
+                  <option value="">Select a mode</option>
+                  <option value="walked">Walked</option>
+                  <option value="biked">Biked</option>
+                  <option value="carpooled">Carpooled</option>
+                  <option value="drove">Drove Alone</option>
+                </select>
+              </label>
+              <div class="eco-commute__actions">
+                <button class="btn btn--primary" type="submit" data-eco-commute-submit>
+                  Log commute
+                </button>
+                <p class="eco-commute__feedback is-hidden" data-eco-commute-feedback role="status"></p>
+              </div>
+            </form>
+          </section>
+
+          <section class="lots-section">
+            <div class="lot-grid" id="lot-grid"></div>
+            <div class="empty-state is-hidden" data-empty>
+              <p class="empty-state__title">No lots match your filters</p>
+              <p class="empty-state__description">Try adjusting the status or search query.</p>
+            </div>
+          </section>
+        </section>
+
+        <section class="content-main is-hidden" data-page="admin">
+          <section class="admin-dashboard">
+            <header class="admin-dashboard__header">
+              <label class="admin-search">
+                <span class="admin-search__icon" aria-hidden="true">🔍</span>
+                <input
+                  type="search"
+                  class="admin-search__input"
+                  placeholder="Search lots by name..."
+                  data-admin-search
+                />
+              </label>
+              <div class="admin-status" role="tablist" aria-label="Filter lots by status">
+                <button class="admin-status__button is-active" role="tab" data-admin-filter="ALL">
+                  All
+                </button>
+                <button class="admin-status__button" role="tab" data-admin-filter="OPEN">Open</button>
+                <button class="admin-status__button" role="tab" data-admin-filter="LIMITED">
+                  Limited
+                </button>
+                <button class="admin-status__button" role="tab" data-admin-filter="FULL">Full</button>
+              </div>
+            </header>
+
+            <div class="admin-dashboard__grid">
+              <section class="admin-card">
+                <header class="admin-card__header">
+                  <h2 class="admin-card__title">List of lots</h2>
+                  <p class="admin-card__subtitle">Manage availability at a glance.</p>
+                </header>
+                <ul class="admin-lot-list" data-admin-lot-list role="list"></ul>
+                <p class="admin-empty is-hidden" data-admin-lot-empty>No lots match that filter.</p>
+              </section>
+
+              <section class="admin-card">
+                <header class="admin-card__header">
+                  <h2 class="admin-card__title">Recent reports</h2>
+                  <p class="admin-card__subtitle">Monitor the latest status updates.</p>
+                </header>
+                <ul class="admin-report-feed" data-admin-report-feed role="list"></ul>
+                <p class="admin-empty is-hidden" data-admin-report-empty>No recent reports yet.</p>
+              </section>
+            </div>
+
+            <section class="admin-card admin-card--wide">
+              <header class="admin-card__header admin-card__header--split">
+                <div>
+                  <h2 class="admin-card__title">Event management</h2>
+                  <p class="admin-card__subtitle">Reserve lots for campus events.</p>
+                </div>
+                <p class="admin-card__hint is-hidden" data-admin-event-feedback></p>
+              </header>
+              <form class="admin-event-form" data-admin-event-form novalidate>
+                <div class="admin-event-form__field">
+                  <label class="admin-event-form__label" for="admin-event-name">Event name</label>
+                  <input
+                    class="admin-event-form__input"
+                    id="admin-event-name"
+                    name="eventName"
+                    type="text"
+                    placeholder="e.g., Spring Open House"
+                    required
+                  />
+                </div>
+                <div class="admin-event-form__field">
+                  <label class="admin-event-form__label" for="admin-event-date">Date</label>
+                  <input class="admin-event-form__input" id="admin-event-date" name="eventDate" type="date" required />
+                </div>
+                <div class="admin-event-form__field">
+                  <label class="admin-event-form__label" for="admin-event-impact">Impact status</label>
+                  <select class="admin-event-form__input" id="admin-event-impact" data-admin-event-impact required>
+                    <option value="OPEN">Open</option>
+                    <option value="LIMITED">Limited</option>
+                    <option value="FULL" selected>Full</option>
+                  </select>
+                </div>
+                <div class="admin-event-form__field admin-event-form__field--wide">
+                  <label class="admin-event-form__label" for="admin-event-lots">Affected lots</label>
+                  <select
+                    class="admin-event-form__input"
+                    id="admin-event-lots"
+                    data-admin-event-lots
+                    multiple
+                    required
+                  ></select>
+                  <p class="admin-event-form__hint">Hold ⌘/Ctrl to select multiple lots.</p>
+                </div>
+                <div class="admin-event-form__field admin-event-form__field--wide">
+                  <label class="admin-event-form__label" for="admin-event-message">Announcement message</label>
+                  <textarea
+                    class="admin-event-form__input textarea"
+                    id="admin-event-message"
+                    data-admin-event-message
+                    placeholder="Share closures, alternative lots, or timing details."
+                  ></textarea>
+                </div>
+                <button class="admin-event-form__submit" type="submit" data-admin-event-submit>
+                  Send notification
+                </button>
+              </form>
+            </section>
+          </section>
+        </section>
+
+        <section class="content-main is-hidden" data-page="report">
+          <section class="report-section">
+            <div class="report-panel">
+              <header class="report-panel__header">
+                <div>
+                  <h2 class="report-panel__title">Report a parking lot status</h2>
+                  <p class="report-panel__subtitle">
+                    Help fellow Cougars by sharing what you see on campus right now.
+                  </p>
+                </div>
+                <span class="status-pill status-pill--open report-panel__badge">+5 pts</span>
+              </header>
+
+              <form class="form report-form" data-report-form novalidate>
+                <div class="form__group">
+                  <label class="form__label" for="report-lot">Parking lot</label>
+                  <select class="input select" id="report-lot" data-report-lot aria-label="Parking lot">
+                    <option value="" disabled selected>Select a lot</option>
+                  </select>
+                </div>
+
+                <div class="form__group">
+                  <span class="form__label">Current status</span>
+                  <div class="status-selector" data-report-status></div>
+                </div>
+
+                <div class="form__group">
+                  <label class="form__label" for="report-note">Optional note</label>
+                  <textarea
+                    class="input textarea"
+                    id="report-note"
+                    data-report-note
+                    placeholder="e.g., Upper level closed for maintenance."
+                  ></textarea>
+                  <p class="form__hint">Notes help validate reports and earn bonus points.</p>
+                </div>
+
+                <p class="form__feedback is-hidden" role="status" data-report-feedback></p>
+
+                <div class="form__actions report-form__actions">
+                  <button class="btn btn--ghost" type="reset" data-report-reset>Clear</button>
+                  <button class="btn btn--primary" type="submit" data-report-submit>
+                    Submit report
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <aside class="report-tips">
+              <h3 class="report-tips__title">Tips for accurate reports</h3>
+              <ul class="report-tips__list">
+                <li>Confirm signage or cones before marking a lot as full.</li>
+                <li>Use “Limited” when spaces remain but aisles feel crowded.</li>
+                <li>Share quick notes about events, closures, or detours.</li>
+              </ul>
+            </aside>
+          </section>
+        </section>
+
+        <section class="content-main is-hidden" data-page="notifications">
+          <section class="notifications-section">
+            <header class="notifications-header">
+              <div>
+                <h2 class="notifications-title">Community notifications</h2>
+                <p class="notifications-subtitle">
+                  Stay updated whenever classmates report a new parking status.
+                </p>
+              </div>
+              <button class="btn btn--ghost" type="button" data-notifications-refresh>
+                Refresh
+              </button>
+            </header>
+            <p class="notifications-loading is-hidden" data-notifications-loading>Loading notifications…</p>
+            <ul class="notification-list" data-notification-list role="list"></ul>
+            <p class="notifications-empty is-hidden" data-notifications-empty>
+              Log in to start receiving notifications.
+            </p>
+          </section>
+        </section>
+
+        <section class="content-main is-hidden" data-page="eco">
+          <section class="eco">
+            <header class="eco__header">
+              <div>
+                <p class="eco__eyebrow">Eco commute</p>
+                <h2 class="eco__title">Turn greener trips into points</h2>
+                <p class="eco__subtitle" data-eco-intro>
+                  Log in to personalize this dashboard with your latest reports and eco points.
+                </p>
+                <div class="eco__chips">
+                  <span class="eco-chip">
+                    <span class="eco-chip__label">CO₂ avoided</span>
+                    <span class="eco-chip__value" data-eco-carbon>0 kg</span>
+                  </span>
+                  <span class="eco-chip">
+                    <span class="eco-chip__label">Solo miles replaced</span>
+                    <span class="eco-chip__value" data-eco-distance>0 mi</span>
+                  </span>
+                  <span class="eco-chip">
+                    <span class="eco-chip__label">Low-impact trips</span>
+                    <span class="eco-chip__value" data-eco-trips>0 / wk</span>
+                  </span>
+                </div>
+              </div>
+              <div class="eco-score">
+                <p class="eco-score__label">Eco points</p>
+                <p class="eco-score__value" data-eco-score>0</p>
+                <p class="eco-score__hint" data-eco-hint>Log in to start earning eco points.</p>
+                <div class="eco-score__progress">
+                  <div class="eco-score__progress-fill" data-eco-progress style="width: 0%"></div>
+                </div>
+                <p class="eco-score__next" data-eco-next>Next badge at 20 pts</p>
+              </div>
+            </header>
+
+            <div class="eco-grid">
+              <section class="eco-card eco-card--inputs">
+                <header class="eco-card__header eco-card__header--split">
+                  <div>
+                    <p class="eco-card__eyebrow">Your weekly inputs</p>
+                    <h3 class="eco-card__title">Tell us how you commute</h3>
+                    <p class="eco-card__hint">Updates save to this browser and follow your login.</p>
+                  </div>
+                  <button class="btn btn--ghost" type="button" data-eco-reset>Reset</button>
+                </header>
+                <form class="eco-inputs" data-eco-inputs-form>
+                  <label class="eco-input">
+                    <span class="eco-input__label">One-way commute miles</span>
+                    <input type="number" min="0" step="0.5" data-eco-input="oneWayMiles" />
+                    <span class="eco-input__hint">Used to estimate avoided miles and CO₂.</span>
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Shuttle rides (per week)</span>
+                    <input type="number" min="0" step="1" data-eco-input="shuttle" />
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Walk trips (per week)</span>
+                    <input type="number" min="0" step="1" data-eco-input="walk" />
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Bike trips (per week)</span>
+                    <input type="number" min="0" step="1" data-eco-input="bike" />
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Carpool trips (per week)</span>
+                    <input type="number" min="0" step="1" data-eco-input="carpool" />
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Avg riders in your carpool</span>
+                    <input type="number" min="1" step="1" data-eco-input="carpoolRiders" />
+                  </label>
+                  <label class="eco-input">
+                    <span class="eco-input__label">Idle minutes avoided</span>
+                    <input type="number" min="0" step="1" data-eco-input="idleMinutes" />
+                    <span class="eco-input__hint">Minutes you cut by shutting the engine off.</span>
+                  </label>
+                </form>
+              </section>
+
+              <section class="eco-card">
+                <header class="eco-card__header">
+                  <div>
+                    <p class="eco-card__eyebrow">Weekly impact</p>
+                    <h3 class="eco-card__title">Move more, idle less</h3>
+                  </div>
+                  <span class="eco-card__pill" data-eco-week>0 low-impact trips</span>
+                </header>
+                <div class="eco-metrics">
+                  <div class="eco-metric">
+                    <p class="eco-metric__label">Carbon avoided</p>
+                    <p class="eco-metric__value" data-eco-metric-carbon>0 kg</p>
+                    <p class="eco-metric__hint">Based on your current eco points and reports.</p>
+                  </div>
+                  <div class="eco-metric">
+                    <p class="eco-metric__label">Driving trimmed</p>
+                    <p class="eco-metric__value" data-eco-metric-distance>0 mi</p>
+                    <p class="eco-metric__hint">Assuming 0.404 kg CO₂e per mile.</p>
+                  </div>
+                  <div class="eco-metric">
+                    <p class="eco-metric__label">Equivalent trees</p>
+                    <p class="eco-metric__value" data-eco-metric-trees>0</p>
+                    <p class="eco-metric__hint">1 month of average tree absorption.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="eco-card">
+                <header class="eco-card__header">
+                  <div>
+                    <p class="eco-card__eyebrow">Mode mix</p>
+                    <h3 class="eco-card__title">How you get to class</h3>
+                  </div>
+                  <span class="eco-card__pill eco-card__pill--neutral">Goal: <span data-eco-goal>70%</span> low-impact</span>
+                </header>
+                <ul class="eco-mode-list" data-eco-mode-list></ul>
+              </section>
+
+              <section class="eco-card eco-card--actions">
+                <header class="eco-card__header eco-card__header--split">
+                  <div>
+                    <p class="eco-card__eyebrow">Challenges</p>
+                    <h3 class="eco-card__title">Stack easy wins</h3>
+                  </div>
+                  <span class="eco-card__pill eco-card__pill--accent">+3 pts each</span>
+                </header>
+                <ul class="eco-action-list" data-eco-action-list></ul>
+              </section>
+            </div>
+          </section>
+        </section>
+
+        <section class="content-main is-hidden" data-page="leaderboard">
+          <section class="leaderboard-section">
+            <div class="leaderboard" data-leaderboard>
+              <table class="leaderboard__table">
+                <thead>
+                  <tr>
+                    <th class="leaderboard__head">Rank</th>
+                    <th class="leaderboard__head">User</th>
+                    <th class="leaderboard__head leaderboard__head--right">Points</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state is-hidden" data-leaderboard-empty>
+              <p class="empty-state__title">No users yet</p>
+              <p class="empty-state__description">
+                Submit a report to earn points and appear on the leaderboard.
+              </p>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="lot-card-template">
+      <article class="lot-card">
+        <div class="lot-card__top">
+          <div>
+            <h3 class="lot-card__title"></h3>
+            <p class="lot-card__code"></p>
+          </div>
+          <div class="lot-card__status-group">
+            <span class="status-pill"></span>
+            <span class="lot-card__estimate-badge" data-estimate-badge>Estimate</span>
+          </div>
+        </div>
+        <div class="lot-card__body">
+          <div class="lot-card__metric">
+            <p class="lot-card__metric-label">Estimated occupancy</p>
+            <div class="lot-card__metric-values">
+              <span class="lot-card__metric-count"></span>
+              <span class="lot-card__metric-percent"></span>
+            </div>
+            <div class="lot-card__progress">
+              <div class="lot-card__progress-fill"></div>
+            </div>
+          </div>
+          <div class="lot-card__meta">
+            <span class="lot-card__meta-item lot-card__meta-walk"></span>
+            <span class="lot-card__meta-item lot-card__meta-full"></span>
+          </div>
+          <p class="lot-card__updated"></p>
+          <p class="lot-card__report is-hidden"></p>
+        </div>
+        <div class="lot-card__actions">
+          <button class="btn btn--secondary" data-action="details">View Details</button>
+          <button class="btn btn--primary" data-action="report">Report Status</button>
+        </div>
+      </article>
+    </template>
+
+    <template id="modal-template">
+      <div class="modal-layer">
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal">
+          <div class="modal__header">
+            <h3 class="modal__title"></h3>
+            <button class="modal__close" data-close aria-label="Close">✕</button>
+          </div>
+          <div class="modal__body"></div>
+        </div>
+      </div>
+    </template>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
