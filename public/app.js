@@ -328,14 +328,8 @@ async function init() {
   setupResponsiveNav();
   updateLocationControls();
   updateLocationStatus();
-  await Promise.all([loadLots(), loadLeaderboard(), loadUser()]);
+  await loadLots();
   startLotPolling();
-  if (state.currentUser) {
-    await loadNotifications();
-    startNotificationPolling();
-  } else {
-    stopNotificationPolling();
-  }
 }
 
 function attachEventListeners() {
@@ -1150,9 +1144,9 @@ function handleLogout(modal) {
 }
 
 function updateUserProfile() {
-  const username = state.currentUser?.username ?? "Not signed in";
+  const username = state.currentUser?.username ?? "Guest";
   dom.username.textContent = username;
-  dom.userEmail.textContent = state.currentUser?.email ?? "Log in to unlock features";
+  dom.userEmail.textContent = "No account required";
   const initialsSource = state.currentUser?.username ?? "";
   dom.usernameInitials.textContent = initialsSource ? initialsFor(initialsSource) : "–";
   if (dom.authOpen) {
@@ -1169,9 +1163,15 @@ function updateStats() {
   const points = state.currentUser?.points ?? 0;
   const ecoSnapshot = getEcoSnapshot(points);
   const reports = state.currentUser?.reports ?? 0;
-  dom.statPoints.textContent = points;
-  dom.statEco.textContent = ecoSnapshot.ecoPoints;
-  dom.statStreak.textContent = `${reports} day${reports === 1 ? "" : "s"}`;
+  if (dom.statPoints) {
+    dom.statPoints.textContent = points;
+  }
+  if (dom.statEco) {
+    dom.statEco.textContent = ecoSnapshot.ecoPoints;
+  }
+  if (dom.statStreak) {
+    dom.statStreak.textContent = `${reports} day${reports === 1 ? "" : "s"}`;
+  }
   renderEcoSection();
 }
 
@@ -2150,6 +2150,7 @@ function mergeUpdatedLot(updatedLot) {
 }
 
 function renderLeaderboard() {
+  if (!dom.leaderboardBody || !dom.leaderboardEmpty) return;
   dom.leaderboardBody.innerHTML = "";
   if (!state.leaderboard.length) {
     dom.leaderboardEmpty.classList.remove("is-hidden");
